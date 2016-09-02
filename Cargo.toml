@@ -1,0 +1,7 @@
+[package]
+name = "image_gen"
+version = "0.1.0"
+authors = ["Stephen Becker IV <github@deathbyescalator.com>"]
+
+[dependencies]
+image = "*"
