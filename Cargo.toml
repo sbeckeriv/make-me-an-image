@@ -5,3 +5,4 @@ authors = ["Stephen Becker IV <github@deathbyescalator.com>"]
 
 [dependencies]
 image = "*"
+rand = "0.3"
