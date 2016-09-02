@@ -5,7 +5,7 @@ use rand::distributions::{IndependentSample, Range};
 use std::cmp;
 use std::fs::File;
 use std::path::Path;
-use rand::{Rng, SeedableRng, StdRng};
+use rand::{SeedableRng, StdRng};
 
 struct Point{
     x: i32,
@@ -55,14 +55,30 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
     }
     vec
 }
+//https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
+fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8> >,generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>> ) -> f32{
+    let mut fitness = 0.0;
+    for (x, y, spixel) in source.enumerate_pixels(){
+        let gpixel = generated.get_pixel(x,y);
+        let mut local = 0.0;
+        for i in 0..3{
+            let s = spixel.data[i] as isize;
+            let g = gpixel.data[i] as isize;
+            local += (s - g).pow(2) as f32;
+        }
+        fitness += local;
+    }
+    fitness
+}
+
 fn main() {
 
-    let imgx = 800;
-    let imgy = 800;
+    let file =format!("base.png");
+    let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
+    let imgx = reference.width();
+    let imgy = reference.height();
     let circles = random_objects(imgx, imgy, 14);
-    // Create a new ImgBuf with width: imgx and height: imgy
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
-    // Iterate over the coordiantes and pixels of the image
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let point = Point{x: x as i32, y: y as i32};
         if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
@@ -70,9 +86,8 @@ fn main() {
         }
 
     }
-    // Save the image as “fractal.png”
+    let value = fitness(&reference, &imgbuf);
+    println!("{:?}", value);
     let ref mut fout = File::create(&Path::new("fractal.png")).unwrap();
-
-    // We must indicate the image’s color type and what format to save as
     let _ = image::ImageRgba8(imgbuf).save(fout, image::PNG);
 }
