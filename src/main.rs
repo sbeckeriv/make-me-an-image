@@ -17,7 +17,7 @@ impl Circle{
         let Point{x:cx,y:cy} = self.center;
         let Point{x,y} = pixel;
         let r = (((cx-x)^2+(cy-y)^2) as f32).sqrt();
-        r <= self.radius
+        r >= self.radius
     }
 }
 fn main() {
