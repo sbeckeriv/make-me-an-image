@@ -16,8 +16,9 @@ impl Circle{
     fn hit(&self, pixel: Point) -> bool{
         let Point{x:cx,y:cy} = self.center;
         let Point{x,y} = pixel;
-        let r = (((cx-x)^2+(cy-y)^2) as f32).sqrt();
-        r >= self.radius
+        let mid = ((cx-x).pow(2)+(cy-y).pow(2)) as f32;
+        let r = (mid).sqrt();
+        r <= self.radius
     }
 }
 fn main() {
@@ -31,13 +32,13 @@ fn main() {
     // Iterate over the coordiantes and pixels of the image
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         if circle.hit(Point{x: x as i32, y: y as i32}){
-            *pixel = image::Rgba([255, 0, 0, 0]);
+            *pixel = image::Rgba([255, 0, 0, 255]);
         }
 
     }
     // Save the image as “fractal.png”
-    let ref mut fout = File::create(&Path::new("fractal.ppm")).unwrap();
+    let ref mut fout = File::create(&Path::new("fractal.png")).unwrap();
 
     // We must indicate the image’s color type and what format to save as
-    let _ = image::ImageRgba8(imgbuf).save(fout, image::PPM);
+    let _ = image::ImageRgba8(imgbuf).save(fout, image::PNG);
 }
