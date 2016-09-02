@@ -20,9 +20,9 @@ struct Circle{
 }
 
 impl Circle{
-    fn hit(&self, pixel: Point) -> bool{
+    fn hit(&self, pixel: &Point) -> bool{
         let Point{x:cx,y:cy} = self.center;
-        let Point{x,y} = pixel;
+        let Point{x,y} = *pixel;
         let mid = ((cx-x).pow(2)+(cy-y).pow(2)) as f32;
         let r = (mid).sqrt();
         r <= self.radius
@@ -33,7 +33,8 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
     let seed: &[_] = &[1, 2, 3, 4];
     let mut rng: StdRng = SeedableRng::from_seed(seed);
     let mut vec = Vec::with_capacity(count as usize);
-    let radius_between = Range::new(0.0, cmp::max(x/2, y/2) as f32 );
+    let radius_max =  cmp::max(x/4, y/4) as f32;
+    let radius_between = Range::new(2.0, radius_max);
     let x_between = Range::new(0, x as i32);
     let y_between = Range::new(0, y as i32);
     let color_between = Range::new(0, 255);
@@ -58,13 +59,13 @@ fn main() {
 
     let imgx = 800;
     let imgy = 800;
-    let circles = random_objects(imgx, imgy, 4);
+    let circles = random_objects(imgx, imgy, 14);
     // Create a new ImgBuf with width: imgx and height: imgy
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     // Iterate over the coordiantes and pixels of the image
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let point = Point{x: x as i32, y: y as i32};
-        if let Some(hit) = circles.iter().find({|circle| circle.hit(Point{x: x as i32, y: y as i32})}){
+        if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
             *pixel = hit.color.clone();
         }
 
