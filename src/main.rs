@@ -1,33 +1,13 @@
 extern crate image;
 extern crate rand;
+mod objects;
+use objects::{Hit, Point, Circle};
 use image::Rgba;
 use rand::distributions::{IndependentSample, Range};
 use std::cmp;
 use std::fs::File;
 use std::path::Path;
 use rand::{SeedableRng, StdRng};
-
-struct Point{
-    x: i32,
-    y: i32
-}
-
-struct Circle{
-    center: Point,
-    radius: f32,
-    color: Rgba<u8>
-
-}
-
-impl Circle{
-    fn hit(&self, pixel: &Point) -> bool{
-        let Point{x:cx,y:cy} = self.center;
-        let Point{x,y} = *pixel;
-        let mid = ((cx-x).pow(2)+(cy-y).pow(2)) as f32;
-        let r = (mid).sqrt();
-        r <= self.radius
-    }
-}
 
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
     let seed: &[_] = &[1, 2, 3, 4];
@@ -82,7 +62,7 @@ fn main() {
     for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
         let point = Point{x: x as i32, y: y as i32};
         if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
-            *pixel = hit.color.clone();
+            *pixel = hit.color().clone();
         }
 
     }
