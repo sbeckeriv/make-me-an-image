@@ -22,7 +22,7 @@ let mut vec : Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
 //https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
 fn hash_fitness(source: &ImageHash, generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>> ) -> f32{
 
-    let generated_hash = ImageHash::hash(&generated, 8, HashType::Gradient);
+    let generated_hash = ImageHash::hash(generated, 8, HashType::Gradient);
     source.dist_ratio(&generated_hash)
 
 }
@@ -66,7 +66,7 @@ fn main() {
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let reference_hash = ImageHash::hash(&(reference.to_hashable(imgx/5)), 8, HashType::Gradient);
+    let reference_hash = ImageHash::hash(&reference, 8, HashType::Gradient);
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
     let runs = 1_000_001;
