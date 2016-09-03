@@ -11,9 +11,10 @@ use rand::{SeedableRng, StdRng};
 
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
     let seed: &[_] = &[1, 2, 3, 4];
-    let mut rng: StdRng = SeedableRng::from_seed(seed);
+    let mut rng = rand::thread_rng();
+    //let mut rng: StdRng = SeedableRng::from_seed(seed);
     let mut vec = Vec::with_capacity(count as usize);
-    let radius_max =  cmp::max(x/4, y/4) as f32;
+    let radius_max =  cmp::min(x/14, y/14) as f32;
     let radius_between = Range::new(2.0, radius_max);
     let x_between = Range::new(0, x as i32);
     let y_between = Range::new(0, y as i32);
@@ -52,17 +53,18 @@ fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8> >,generated: &image::Im
 }
 
 fn main() {
-
     let file =format!("base.png");
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let circles = random_objects(imgx, imgy, 14);
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
-    let mut list = vec![imgbuf.clone()];
-    let runs = 4;
-    for i in (0..runs){
-        let mut current_buf = imgbuf.clone();
+    let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
+    let runs = 400_001;
+    for i in 0..runs {
+        let mut rng = rand::thread_rng();
+        let object_count = Range::new(5, 15);
+        let circles = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
+        let mut current_buf = list[0].1.clone();
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
             let point = Point{x: x as i32, y: y as i32};
             if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
@@ -71,9 +73,15 @@ fn main() {
 
         }
         let value = fitness(&reference, &current_buf);
-        println!("{:?}", value);
-        let name = format!("run_{}.png",i);
-        let ref mut fout = File::create(&Path::new(&name)).unwrap();
-        let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
+        if(value < list[0].0){
+            println!("{:?}", value);
+            list = vec![(value, current_buf.clone())];
+        }
+
+        if(i % 10_000 == 0 || i == runs-1){
+            let name = format!("run_{}.png",i);
+            let ref mut fout = File::create(&Path::new(&name)).unwrap();
+            let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
+        }
     }
 }
