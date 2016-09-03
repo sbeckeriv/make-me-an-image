@@ -14,13 +14,15 @@ use rand::distributions::{IndependentSample, Range};
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for _ in 0..count {
-        vec.push(Box::new(Triangle::random(x, y)));
+        vec.push(Box::new(Circle::random(x, y)));
     }
     vec
 }
 
 fn hash_fitness(source: &ImageHash, generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> f32 {
-    let generated_hash = ImageHash::hash(generated, 8, HashType::Gradient);
+
+    let imgx = generated.width();
+    let generated_hash = ImageHash::hash(generated, imgx, HashType::Gradient);
     source.dist_ratio(&generated_hash)
 }
 
@@ -65,7 +67,7 @@ fn main() {
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let reference_hash = ImageHash::hash(&reference, 8, HashType::Gradient);
+    let reference_hash = ImageHash::hash(&reference, imgx, HashType::Gradient);
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX, imgbuf.clone())];
     let runs = 1_000_001;
@@ -89,7 +91,8 @@ fn main() {
 
         }
 
-        let value = fitness(&reference, &current_buf);
+        // let value = fitness(&reference, &current_buf);
+        let value = hash_fitness(&reference_hash, &current_buf);
 
         if value < list[0].0 {
             println!("{:?}", value);
@@ -101,7 +104,7 @@ fn main() {
         }
 
         if i % 100_000 == 0 || i == runs - 1 {
-            let name = format!("results/run_{}.png", i);
+            let name = format!("results/run_2_{}.png", i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
         }
