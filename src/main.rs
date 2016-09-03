@@ -9,10 +9,10 @@ use std::path::Path;
 use rand::{SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
 
-fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
-let mut vec = Vec::with_capacity(count as usize);
+fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>>{
+let mut vec : Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for _ in 0..count{
-        vec.push(Circle::random(x, y));
+        vec.push(Box::new(Triangle::random(x, y)));
     }
     vec
 }
@@ -57,7 +57,7 @@ fn main() {
     let imgy = reference.height();
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
-    let runs = 10_000_000;
+    let runs = 1_000_001;
     for i in 0..runs {
         let mut rng = rand::thread_rng();
         let object_count = Range::new(2,5);
@@ -66,7 +66,7 @@ fn main() {
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
             let point = Point{x: x as i32, y: y as i32};
             if let Some(hit) = circles.iter().find(|circle| circle.hit(&point)) {
-                *pixel = sum_pixel_values(&hit.color, &pixel);
+                *pixel = sum_pixel_values(&hit.color(), &pixel);
             }
 
         }
@@ -76,11 +76,11 @@ fn main() {
             list = vec![(value, current_buf.clone())];
         }
 
-        if i % 10 == 0 {
+        if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
         }
 
-        if i % 1_000 == 0 || i == runs-1 {
+        if i % 100_000 == 0 || i == runs-1 {
             let name = format!("results/run_{}.png",i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
