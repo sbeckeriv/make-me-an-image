@@ -1,39 +1,18 @@
 extern crate image;
 extern crate rand;
 mod objects;
-use objects::{Hit, Point, Circle};
+use objects::{Hit, random_color, Color, Point, Circle, Triangle};
 use image::Rgba;
-use rand::distributions::{IndependentSample, Range};
 use std::cmp;
 use std::fs::File;
 use std::path::Path;
 use rand::{SeedableRng, StdRng};
+use rand::distributions::{IndependentSample, Range};
 
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
-    let seed: &[_] = &[1, 2, 3, 4];
-    let mut rng = rand::thread_rng();
-    //let mut rng: StdRng = SeedableRng::from_seed(seed);
-    let mut vec = Vec::with_capacity(count as usize);
-    let radius_max =  cmp::min(x/4, y/4) as f32;
-    let radius_between = Range::new(2.0, 4.0);
-    let x_between = Range::new(0, x as i32);
-    let y_between = Range::new(0, y as i32);
-    let color_between = Range::new(0, 255);
-    let alpha_between = Range::new(0, 255);
+let mut vec = Vec::with_capacity(count as usize);
     for _ in 0..count{
-        vec.push(Circle{
-            center: Point{
-                x: x_between.ind_sample(&mut rng),
-                y: y_between.ind_sample(&mut rng)
-            },
-            radius: radius_between.ind_sample(&mut rng),
-            color: image::Rgba([
-                               color_between.ind_sample(&mut rng),
-                               color_between.ind_sample(&mut rng),
-                               color_between.ind_sample(&mut rng),
-                               alpha_between.ind_sample(&mut rng)
-            ])
-        });
+        vec.push(Circle::random(x, y));
     }
     vec
 }
@@ -61,7 +40,7 @@ fn main() {
     let imgy = reference.height();
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
-    let runs = 1_000_001;
+    let runs = 10;
     for i in 0..runs {
         let mut rng = rand::thread_rng();
         let object_count = Range::new(2,5);
