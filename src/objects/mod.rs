@@ -81,7 +81,7 @@ impl Triangle{
         let seed: &[_] = &[1, 2, 3, 4];
         let mut rng = rand::thread_rng();
         //let mut rng: StdRng = SeedableRng::from_seed(seed);
-        let range = Range::new(2.0, 4.0);
+        let range = Range::new(5.0, 10.0);
         let direction = Range::new(0, 4);
 
         let x_between = Range::new(0, x as i32);
