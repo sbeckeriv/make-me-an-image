@@ -1,6 +1,8 @@
 extern crate image;
+extern crate img_hash;
 extern crate rand;
 mod objects;
+use img_hash::{ImageHash, HashType};
 use objects::{Hitable, random_color, Point, Circle, Triangle};
 use image::Rgba;
 use std::cmp;
@@ -15,6 +17,14 @@ let mut vec : Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
         vec.push(Box::new(Triangle::random(x, y)));
     }
     vec
+}
+
+//https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
+fn hash_fitness(source: &ImageHash, generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>> ) -> f32{
+
+    let generated_hash = ImageHash::hash(&generated, 8, HashType::Gradient);
+    source.dist_ratio(&generated_hash)
+
 }
 
 //https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
@@ -51,8 +61,10 @@ fn sum_pixel_values(top: &Rgba<u8>, bottom: &Rgba<u8>) -> Rgba<u8> {
 }
 
 fn main() {
+    let old_style = false;
     let file =format!("base.png");
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
+    let reference_hash = ImageHash::hash(&reference, 8, HashType::Gradient);
     let imgx = reference.width();
     let imgy = reference.height();
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
@@ -66,11 +78,16 @@ fn main() {
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
             let point = Point{x: x as i32, y: y as i32};
             if let Some(hit) = circles.iter().find(|circle| circle.hit(&point)) {
-                *pixel = sum_pixel_values(&hit.color(), &pixel);
+                if old_style {
+                    *pixel = hit.color().clone();
+                }else{
+                    *pixel = sum_pixel_values(&hit.color(), &pixel);
+                }
             }
 
         }
-        let value = fitness(&reference, &current_buf);
+        //let value = fitness(&reference, &current_buf);
+        let value = hash_fitness(&reference_hash, &current_buf);
         if value < list[0].0 {
             println!("{:?}", value);
             list = vec![(value, current_buf.clone())];
