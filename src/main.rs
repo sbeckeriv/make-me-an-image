@@ -14,11 +14,12 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
     let mut rng = rand::thread_rng();
     //let mut rng: StdRng = SeedableRng::from_seed(seed);
     let mut vec = Vec::with_capacity(count as usize);
-    let radius_max =  cmp::min(x/14, y/14) as f32;
-    let radius_between = Range::new(2.0, radius_max);
+    let radius_max =  cmp::min(x/4, y/4) as f32;
+    let radius_between = Range::new(2.0, 4.0);
     let x_between = Range::new(0, x as i32);
     let y_between = Range::new(0, y as i32);
     let color_between = Range::new(0, 255);
+    let alpha_between = Range::new(0, 255);
     for _ in 0..count{
         vec.push(Circle{
             center: Point{
@@ -30,12 +31,13 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Circle>{
                                color_between.ind_sample(&mut rng),
                                color_between.ind_sample(&mut rng),
                                color_between.ind_sample(&mut rng),
-                               color_between.ind_sample(&mut rng)
+                               alpha_between.ind_sample(&mut rng)
             ])
         });
     }
     vec
 }
+
 //https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
 fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8> >,generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>> ) -> f32{
     let mut fitness = 0.0;
@@ -59,10 +61,10 @@ fn main() {
     let imgy = reference.height();
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
-    let runs = 400_001;
+    let runs = 1_000_001;
     for i in 0..runs {
         let mut rng = rand::thread_rng();
-        let object_count = Range::new(5, 15);
+        let object_count = Range::new(2,5);
         let circles = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
         let mut current_buf = list[0].1.clone();
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
@@ -73,12 +75,12 @@ fn main() {
 
         }
         let value = fitness(&reference, &current_buf);
-        if(value < list[0].0){
+        if value < list[0].0 {
             println!("{:?}", value);
             list = vec![(value, current_buf.clone())];
         }
 
-        if(i % 10_000 == 0 || i == runs-1){
+        if i % 10_000 == 0 || i == runs-1 {
             let name = format!("run_{}.png",i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
