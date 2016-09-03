@@ -59,15 +59,20 @@ fn main() {
     let imgy = reference.height();
     let circles = random_objects(imgx, imgy, 14);
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
-    for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
-        let point = Point{x: x as i32, y: y as i32};
-        if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
-            *pixel = hit.color().clone();
-        }
+    let runs = 4;
+    for i in (0..runs){
+        let mut current_buf = imgbuf.clone();
+        for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
+            let point = Point{x: x as i32, y: y as i32};
+            if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
+                *pixel = hit.color().clone();
+            }
 
+        }
+        let value = fitness(&reference, &current_buf);
+        println!("{:?}", value);
+        let name = format!("run_{}.png",i);
+        let ref mut fout = File::create(&Path::new(&name)).unwrap();
+        let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
     }
-    let value = fitness(&reference, &imgbuf);
-    println!("{:?}", value);
-    let ref mut fout = File::create(&Path::new("fractal.png")).unwrap();
-    let _ = image::ImageRgba8(imgbuf).save(fout, image::PNG);
 }
