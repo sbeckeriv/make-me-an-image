@@ -34,7 +34,7 @@ base image
 ![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/run_9999999_black_background.png "10 mill black")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
 
 
-1 million run of triangles with combining pixels
+1 million run of triangles with combining pixels 58 minutes
 
 
 ![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/1_mill_tri.png "1 mill ")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
