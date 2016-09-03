@@ -81,7 +81,7 @@ fn main() {
         }
 
         if i % 10_000 == 0 || i == runs-1 {
-            let name = format!("run_{}.png",i);
+            let name = format!("results/run_{}.png",i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
         }
