@@ -7,7 +7,7 @@ authors = ["Stephen Becker IV <github@deathbyescalator.com>"]
 image = "*"
 rand = "0.3"
 [dependencies.img_hash]
-version = "1"
+git = "https://github.com/cybergeek94/img_hash"
 # For interop with `image`:
 features = ["rust-image"]
 
