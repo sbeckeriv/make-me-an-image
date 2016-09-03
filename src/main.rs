@@ -33,6 +33,23 @@ fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8> >,generated: &image::Im
     fitness
 }
 
+fn combine_channel(top: u8, bottom: u8, transparency: u8) -> u8 {
+    let transp = transparency as f32 / 255.0;
+    let t      = top as f32;
+    let b      = bottom as f32;
+
+    ((transp * t + (1.0 - transp) * b) * 255.0) as u8
+}
+
+fn sum_pixel_values(top: &Rgba<u8>, bottom: &Rgba<u8>) -> Rgba<u8> {
+    Rgba{data: [
+        combine_channel(top[0], bottom[0], top[3]),
+        combine_channel(top[1], bottom[1], top[3]),
+        combine_channel(top[2], bottom[2], top[3]),
+        255
+    ]}
+}
+
 fn main() {
     let file =format!("base.png");
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
@@ -48,8 +65,8 @@ fn main() {
         let mut current_buf = list[0].1.clone();
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
             let point = Point{x: x as i32, y: y as i32};
-            if let Some(hit) = circles.iter().find({|circle| circle.hit(&point)}){
-                *pixel = hit.color().clone();
+            if let Some(hit) = circles.iter().find(|circle| circle.hit(&point)) {
+                *pixel = sum_pixel_values(&hit.color, &pixel);
             }
 
         }
@@ -59,7 +76,11 @@ fn main() {
             list = vec![(value, current_buf.clone())];
         }
 
-        if i % 10_000 == 0 || i == runs-1 {
+        if i % 10 == 0 {
+            println!("Iteration #{:?}", i);
+        }
+
+        if i % 1_000 == 0 || i == runs-1 {
             let name = format!("results/run_{}.png",i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
