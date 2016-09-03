@@ -24,11 +24,8 @@ pub struct Point{
     pub y: i32
 }
 
-pub trait Hit {
+pub trait Hitable {
     fn hit(&self, pixel: &Point) -> bool;
-}
-
-pub trait Color {
     fn color(&self) -> &Rgba<u8>;
 }
 
@@ -58,19 +55,17 @@ impl Circle{
     }
 }
 
-impl Color for Circle{
-    fn color(&self) -> &Rgba<u8>{
-        &self.color
-    }
-}
-
-impl Hit for Circle{
+impl Hitable for Circle{
     fn hit(&self, pixel: &Point) -> bool{
         let Point{x:cx,y:cy} = self.center;
         let Point{x,y} = *pixel;
         let mid = ((cx-x).pow(2)+(cy-y).pow(2)) as f32;
         let r = (mid).sqrt();
         r <= self.radius
+    }
+
+    fn color(&self) -> &Rgba<u8>{
+        &self.color
     }
 }
 
@@ -169,13 +164,10 @@ impl Triangle{
     }
 }
 
-impl Color for Triangle{
+impl Hitable for Triangle{
     fn color(&self) -> &Rgba<u8>{
         &self.color
     }
-}
-
-impl Hit for Triangle{
     fn hit(&self, pixel: &Point) -> bool{
         let Point{x,y} = *pixel;
         let Point{x: x1, y: y1} = self.a;

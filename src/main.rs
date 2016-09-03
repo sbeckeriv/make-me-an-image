@@ -1,7 +1,7 @@
 extern crate image;
 extern crate rand;
 mod objects;
-use objects::{Hit, random_color, Color, Point, Circle, Triangle};
+use objects::{Hitable, random_color, Point, Circle, Triangle};
 use image::Rgba;
 use std::cmp;
 use std::fs::File;
