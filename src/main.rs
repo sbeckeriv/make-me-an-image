@@ -59,6 +59,7 @@ fn main() {
     let imgy = reference.height();
     let circles = random_objects(imgx, imgy, 14);
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
+    let mut list = vec![imgbuf.clone()];
     let runs = 4;
     for i in (0..runs){
         let mut current_buf = imgbuf.clone();
