@@ -1,6 +1,6 @@
 extern crate image;
-extern crate img_hash;
 extern crate rand;
+extern crate img_hash;
 mod objects;
 use img_hash::{ImageHash, HashImage, HashType};
 use objects::{Hitable, random_color, Point, Circle, Triangle};
@@ -12,19 +12,16 @@ use rand::{SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
 
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>>{
-let mut vec : Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
+    let mut vec : Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for _ in 0..count{
         vec.push(Box::new(Triangle::random(x, y)));
     }
     vec
 }
 
-//https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
 fn hash_fitness(source: &ImageHash, generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>> ) -> f32{
-
     let generated_hash = ImageHash::hash(generated, 8, HashType::Gradient);
     source.dist_ratio(&generated_hash)
-
 }
 
 //https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
@@ -86,8 +83,9 @@ fn main() {
             }
 
         }
-        //let value = fitness(&reference, &current_buf);
-        let value = hash_fitness(&reference_hash, &current_buf);
+
+        let value = fitness(&reference, &current_buf);
+
         if value < list[0].0 {
             println!("{:?}", value);
             list = vec![(value, current_buf.clone())];
