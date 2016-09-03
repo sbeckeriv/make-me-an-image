@@ -39,4 +39,9 @@ base image
 
 ![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/1_mill_tri.png "1 mill ")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
 
+1 million run of triangles old style
+
+
+![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/run_1000000_tri.png "1 mill ")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
+
 
