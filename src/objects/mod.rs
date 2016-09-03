@@ -168,6 +168,7 @@ impl Hitable for Triangle{
     fn color(&self) -> &Rgba<u8>{
         &self.color
     }
+    //http://totologic.blogspot.fr/2014/01/accurate-point-in-triangle-test.html
     fn hit(&self, pixel: &Point) -> bool{
         let Point{x,y} = *pixel;
         let Point{x: x1, y: y1} = self.a;

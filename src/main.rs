@@ -40,7 +40,7 @@ fn main() {
     let imgy = reference.height();
     let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
     let mut list = vec![(std::f32::MAX ,imgbuf.clone())];
-    let runs = 10;
+    let runs = 10_000_000;
     for i in 0..runs {
         let mut rng = rand::thread_rng();
         let object_count = Range::new(2,5);
