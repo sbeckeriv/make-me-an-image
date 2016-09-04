@@ -40,8 +40,8 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
 }
 
 // https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
-fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
-           generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
+fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<isize>>,
+           generated: &image::ImageBuffer<Rgba<u8>, Vec<isize>>)
            -> isize {
     let mut fitness = 0;
     for (x, y, spixel) in source.enumerate_pixels() {
