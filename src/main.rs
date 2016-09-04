@@ -30,7 +30,7 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 4 == 0 {
+        if i % 6 == 0 {
             vec.push(Box::new(Triangle::random(x, y)));
         } else {
             vec.push(Box::new(Circle::random(x, y)));
@@ -50,7 +50,7 @@ fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
         for i in 0..3 {
             let s = spixel.data[i] as isize;
             let g = gpixel.data[i] as isize;
-            local += (s - g).pow(2) as f32;
+            local += ((s - g) * (s - g)) as f32;
         }
         fitness += local;
     }
