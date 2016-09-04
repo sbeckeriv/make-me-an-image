@@ -6,6 +6,6 @@ authors = ["Stephen Becker IV <github@deathbyescalator.com>"]
 [dependencies]
 image = "*"
 rand = "0.3"
-
+docopt = "0.6"
 [profile.release]
 debug = true
