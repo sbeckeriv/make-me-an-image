@@ -92,17 +92,16 @@ fn main() {
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let mut imgbuf = image::ImageBuffer::new(imgx, imgy);
-    let mut list = vec![(std::f32::MAX, imgbuf.clone())];
+    let mut list = vec![(std::f32::MAX, image::ImageBuffer::new(imgx, imgy))];
     let runs = if args.get_str("--n") != "" {
         args.get_str("--n").parse::<i32>().unwrap()
     } else {
         100_000
     };
     let peek_size = runs / 30;
+    let mut rng = rand::thread_rng();
+    let object_count = Range::new(2, 6);
     for i in 0..runs {
-        let mut rng = rand::thread_rng();
-        let object_count = Range::new(2, 6);
         let circles = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
         let mut current_buf = list[0].1.clone();
         for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
@@ -120,22 +119,23 @@ fn main() {
 
         }
 
+        if (final_file.is_none() || peek) && (i % peek_size == 0 || i == runs - 1) {
+            let name = format!("results/run_{}.png", i);
+            let ref mut fout = Path::new(&name);
+            let _ = current_buf.save(fout);
+        }
+
         let value = fitness(&reference, &current_buf);
 
         if value < list[0].0 {
             // println!("{:?}", value);
-            list = vec![(value, current_buf.clone())];
+            list = vec![(value, current_buf)];
         }
 
         if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
         }
 
-        if (final_file.is_none() || peek) && (i % peek_size == 0 || i == runs - 1) {
-            let name = format!("results/run_{}.png", i);
-            let ref mut fout = File::create(&Path::new(&name)).unwrap();
-            let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
-        }
     }
     if let Some(file) = final_file {
         let name = format!("{}.png", file);
