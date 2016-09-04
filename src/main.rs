@@ -42,17 +42,19 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
 // https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
 fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
            generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
-           -> f32 {
-    let mut fitness = 0.0;
+           -> isize {
+    let mut fitness = 0;
     for (x, y, spixel) in source.enumerate_pixels() {
         let gpixel = generated.get_pixel(x, y);
-        let mut local = 0.0;
-        for i in 0..3 {
-            let s = spixel.data[i] as isize;
-            let g = gpixel.data[i] as isize;
-            local += ((s - g) * (s - g)) as f32;
-        }
-        fitness += local;
+        let s = spixel.data[0] as isize;
+        let g = gpixel.data[0] as isize;
+        fitness += ((s - g) * (s - g));
+        let s = spixel.data[1] as isize;
+        let g = gpixel.data[1] as isize;
+        fitness += ((s - g) * (s - g));
+        let s = spixel.data[2] as isize;
+        let g = gpixel.data[2] as isize;
+        fitness += ((s - g) * (s - g));
     }
     fitness
 }
@@ -92,7 +94,7 @@ fn main() {
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let mut list = vec![(std::f32::MAX, image::ImageBuffer::new(imgx, imgy))];
+    let mut list = vec![(std::isize::MAX, image::ImageBuffer::new(imgx, imgy))];
     let runs = if args.get_str("--n") != "" {
         args.get_str("--n").parse::<i32>().unwrap()
     } else {
@@ -128,7 +130,6 @@ fn main() {
         let value = fitness(&reference, &current_buf);
 
         if value < list[0].0 {
-            // println!("{:?}", value);
             list = vec![(value, current_buf)];
         }
 
