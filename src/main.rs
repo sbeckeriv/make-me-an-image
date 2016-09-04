@@ -16,7 +16,7 @@ Image gen
 
 Usage:
   image_gen --help
-  image_gen --base=<file> [--out=<file>  --n=<number> --blend]
+  image_gen --base=<file> [--out=<file>  --n=<number> --blend --peek]
 
 Options:
   -h --help
@@ -24,6 +24,7 @@ Options:
   --out=<file>
   --n=<number>
   --blend
+  --peek
 ";
 
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
@@ -81,6 +82,7 @@ fn main() {
             e.exit()
         });
     let old_style = !args.get_bool("--blend");
+    let peek = !args.get_bool("--peek");
     let file = format!("{}", args.get_str("--base"));
     let final_file = if args.get_str("--out") == "" {
         None
@@ -97,6 +99,7 @@ fn main() {
     } else {
         100_000
     };
+    let peek_size = runs / 30;
     for i in 0..runs {
         let mut rng = rand::thread_rng();
         let object_count = Range::new(2, 6);
@@ -128,7 +131,7 @@ fn main() {
             println!("Iteration #{:?}", i);
         }
 
-        if final_file.is_none() && i % 100_000 == 0 || i == runs - 1 {
+        if (final_file.is_none() || peek) && (i % peek_size == 0 || i == runs - 1) {
             let name = format!("results/run_{}.png", i);
             let ref mut fout = File::create(&Path::new(&name)).unwrap();
             let _ = image::ImageRgba8(current_buf).save(fout, image::PNG);
