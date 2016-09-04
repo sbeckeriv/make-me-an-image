@@ -3,13 +3,10 @@ extern crate rand;
 extern crate docopt;
 mod objects;
 use docopt::Docopt;
-use std::env;
-use objects::{Hitable, random_color, Point, Circle, Triangle};
+use objects::{Hitable, Point, Circle, Triangle};
 use image::Rgba;
-use std::cmp;
 use std::fs::File;
 use std::path::Path;
-use rand::{SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
 const USAGE: &'static str = "
 Image gen
@@ -48,13 +45,13 @@ fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
         let gpixel = generated.get_pixel(x, y);
         let s = spixel.data[0] as isize;
         let g = gpixel.data[0] as isize;
-        fitness += ((s - g) * (s - g));
+        fitness += (s - g) * (s - g);
         let s = spixel.data[1] as isize;
         let g = gpixel.data[1] as isize;
-        fitness += ((s - g) * (s - g));
+        fitness += (s - g) * (s - g);
         let s = spixel.data[2] as isize;
         let g = gpixel.data[2] as isize;
-        fitness += ((s - g) * (s - g));
+        fitness += (s - g) * (s - g);
     }
     fitness
 }

@@ -1,14 +1,9 @@
 use image::Rgba;
 use rand;
-use rand::{SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
-use std::cmp;
-
 pub fn random_color() -> Rgba<u8> {
 
-    let seed: &[_] = &[1, 2, 3, 4];
     let mut rng = rand::thread_rng();
-    // let mut rng: StdRng = SeedableRng::from_seed(seed);
     let color_between = Range::new(0, 255);
     let alpha_between = Range::new(0, 255);
     Rgba([color_between.ind_sample(&mut rng),
@@ -34,10 +29,7 @@ pub struct Circle {
 }
 impl Circle {
     pub fn random(x: u32, y: u32) -> Self {
-        let seed: &[_] = &[1, 2, 3, 4];
         let mut rng = rand::thread_rng();
-        // let mut rng: StdRng = SeedableRng::from_seed(seed);
-        let radius_max = cmp::min(x / 4, y / 4) as f32;
         let radius_between = Range::new(2.0, 4.0);
         let x_between = Range::new(0, x as i32);
         let y_between = Range::new(0, y as i32);
@@ -76,9 +68,7 @@ pub struct Triangle {
 impl Triangle {
     pub fn random(x: u32, y: u32) -> Self {
 
-        let seed: &[_] = &[1, 2, 3, 4];
         let mut rng = rand::thread_rng();
-        // let mut rng: StdRng = SeedableRng::from_seed(seed);
         let range = Range::new(3.0, 10.0);
         let direction = Range::new(0, 4);
 
