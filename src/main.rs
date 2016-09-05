@@ -1,7 +1,10 @@
 extern crate image;
 extern crate rand;
 extern crate docopt;
+
 mod objects;
+
+use std::sync::Arc;
 use docopt::Docopt;
 use objects::{Hitable, Point, Circle, Triangle};
 use image::Rgba;
@@ -24,13 +27,13 @@ Options:
   --peek
 ";
 
-fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
-    let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
+fn random_objects(x: u32, y: u32, count: u32) -> Vec<Arc<Hitable>> {
+    let mut vec: Vec<Arc<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
         if i % 5 == 0 {
-            vec.push(Box::new(Triangle::random(x, y)));
+            vec.push(Arc::new(Triangle::random(x, y)));
         } else {
-            vec.push(Box::new(Circle::random(x, y)));
+            vec.push(Arc::new(Circle::random(x, y)));
         }
     }
     vec
@@ -84,7 +87,7 @@ fn main() {
         let mut current_buf = list[0].1.clone();
         let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
 
-        let good_objects: Vec<Box<Hitable>> = objects.into_iter()
+        let good_objects: Vec<Arc<Hitable>> = objects.into_iter()
             .filter(|o| o.fitness(&reference, &current_buf) > 0)
             .collect();
         for circle in good_objects {
