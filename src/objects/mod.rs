@@ -83,15 +83,15 @@ impl Hitable for Circle {
     fn pixel_box(&self) -> (Point, Point) {
         let radius_int = (self.radius + 0.5) as u32;
 
-        let min_x = self.center.x + radius_int;
-        let max_x = if self.center.x > radius_int {
+        let max_x = self.center.x + radius_int;
+        let min_x = if self.center.x > radius_int {
             self.center.x - radius_int
         } else {
             0
         };
 
-        let min_y = self.center.y + radius_int;
-        let max_y = if self.center.y > radius_int {
+        let max_y = self.center.y + radius_int;
+        let min_y = if self.center.y > radius_int {
             self.center.y - radius_int
         } else {
             0
@@ -113,7 +113,7 @@ impl Hitable for Circle {
         let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
         for x in min_x..max_x {
             for y in min_y..max_y {
-                if x >= 0 && y >= 0 && x <= imgx && y <= imgy {
+                if x > 0 && y > 0 && x < imgx && y < imgy {
                     let point = Point { x: x, y: y };
                     if self.hit(&point) {
                         fitness += self.color_fitness(&self.color(), source.get_pixel(x, y));
@@ -121,7 +121,6 @@ impl Hitable for Circle {
                 }
             }
         }
-        println!("fitness {:?}", fitness);
         fitness
     }
 }

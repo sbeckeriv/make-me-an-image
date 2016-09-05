@@ -81,7 +81,7 @@ fn main() {
             e.exit()
         });
     let old_style = !args.get_bool("--blend");
-    let peek = !args.get_bool("--peek");
+    let peek = args.get_bool("--peek");
     let file = format!("{}", args.get_str("--base"));
     let final_file = if args.get_str("--out") == "" {
         None
