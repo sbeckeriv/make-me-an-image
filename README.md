@@ -13,11 +13,6 @@ buffer
 3) repeat a lot
 
 
-base image
-
-
-![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
-
 1 million runs
 
 
