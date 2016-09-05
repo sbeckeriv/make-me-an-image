@@ -1,8 +1,9 @@
+use image;
 use image::Rgba;
 use rand;
+use std::cmp;
 use rand::distributions::{IndependentSample, Range};
 pub fn random_color() -> Rgba<u8> {
-
     let mut rng = rand::thread_rng();
     let color_between = Range::new(0, 255);
     let alpha_between = Range::new(0, 255);
@@ -10,29 +11,47 @@ pub fn random_color() -> Rgba<u8> {
           color_between.ind_sample(&mut rng),
           color_between.ind_sample(&mut rng),
           alpha_between.ind_sample(&mut rng)])
-
 }
+#[derive(Debug)]
 pub struct Point {
-    pub x: i32,
-    pub y: i32,
+    pub x: u32,
+    pub y: u32,
 }
 
 pub trait Hitable {
+    fn debug(&self) -> ();
     fn hit(&self, pixel: &Point) -> bool;
     fn color(&self) -> &Rgba<u8>;
+    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize;
+    fn pixel_box(&self) -> (Point, Point);
+    fn color_fitness(&self, generated_color: &Rgba<u8>, source_color: &Rgba<u8>) -> isize {
+        let mut fitness = 0;
+        let s = source_color.data[0] as isize;
+        let g = generated_color.data[0] as isize;
+        fitness += (s - g) * (s - g);
+        let s = source_color.data[1] as isize;
+        let g = generated_color.data[1] as isize;
+        fitness += (s - g) * (s - g);
+        let s = source_color.data[2] as isize;
+        let g = generated_color.data[2] as isize;
+        fitness += (s - g) * (s - g);
+        fitness
+    }
 }
 
+#[derive(Debug)]
 pub struct Circle {
     pub center: Point,
     pub radius: f32,
     pub color: Rgba<u8>,
 }
+
 impl Circle {
     pub fn random(x: u32, y: u32) -> Self {
         let mut rng = rand::thread_rng();
         let radius_between = Range::new(2.0, 4.0);
-        let x_between = Range::new(0, x as i32);
-        let y_between = Range::new(0, y as i32);
+        let x_between = Range::new(0, x);
+        let y_between = Range::new(0, y);
 
         Circle {
             center: Point {
@@ -46,6 +65,9 @@ impl Circle {
 }
 
 impl Hitable for Circle {
+    fn debug(&self) {
+        println!("{:?}", self);
+    }
     fn hit(&self, pixel: &Point) -> bool {
         let Point { x: cx, y: cy } = self.center;
         let Point { x, y } = *pixel;
@@ -57,8 +79,54 @@ impl Hitable for Circle {
     fn color(&self) -> &Rgba<u8> {
         &self.color
     }
+
+    fn pixel_box(&self) -> (Point, Point) {
+        let radius_int = (self.radius + 0.5) as u32;
+
+        let min_x = self.center.x + radius_int;
+        let max_x = if self.center.x > radius_int {
+            self.center.x - radius_int
+        } else {
+            0
+        };
+
+        let min_y = self.center.y + radius_int;
+        let max_y = if self.center.y > radius_int {
+            self.center.y - radius_int
+        } else {
+            0
+        };
+        (Point {
+            x: min_x,
+            y: min_y,
+        },
+         Point {
+            x: max_x,
+            y: max_y,
+        })
+    }
+
+    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize {
+        let imgx = source.width();
+        let imgy = source.height();
+        let mut fitness = 0;
+        let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
+        for x in min_x..max_x {
+            for y in min_y..max_y {
+                if x >= 0 && y >= 0 && x <= imgx && y <= imgy {
+                    let point = Point { x: x, y: y };
+                    if self.hit(&point) {
+                        fitness += self.color_fitness(&self.color(), source.get_pixel(x, y));
+                    }
+                }
+            }
+        }
+        println!("fitness {:?}", fitness);
+        fitness
+    }
 }
 
+#[derive(Debug)]
 pub struct Triangle {
     pub a: Point,
     pub b: Point,
@@ -67,27 +135,26 @@ pub struct Triangle {
 }
 impl Triangle {
     pub fn random(x: u32, y: u32) -> Self {
-
         let mut rng = rand::thread_rng();
-        let range = Range::new(3.0, 10.0);
+        let range = Range::new(3, 10);
         let direction = Range::new(0, 4);
 
-        let x_between = Range::new(0, x as i32);
-        let y_between = Range::new(0, y as i32);
-
+        let x_between = Range::new(0, x);
+        let y_between = Range::new(0, y);
         let center = Point {
             x: x_between.ind_sample(&mut rng),
             y: y_between.ind_sample(&mut rng),
         };
-        let distance = range.ind_sample(&mut rng) as i32;
-        let (a, b, c) = match direction.ind_sample(&mut rng) {
+        let distance = range.ind_sample(&mut rng) as u32;
+        let the_direction = direction.ind_sample(&mut rng);
+        let (a, b, c) = match the_direction {
             0 => {
                 (Point {
                     x: center.x + distance,
                     y: center.y,
                 },
                  Point {
-                    x: center.x - distance,
+                    x: cmp::min(x, center.x - distance),
                     y: center.y,
                 },
                  Point {
@@ -102,12 +169,12 @@ impl Triangle {
                     y: center.y,
                 },
                  Point {
-                    x: center.x - distance,
+                    x: cmp::min(x, center.x - distance),
                     y: center.y,
                 },
                  Point {
                     x: center.x,
-                    y: center.y - distance,
+                    y: cmp::min(y, center.y - distance),
                 })
             }
 
@@ -118,7 +185,7 @@ impl Triangle {
                 },
                  Point {
                     x: center.x,
-                    y: center.y - distance,
+                    y: cmp::min(y, center.y - distance),
                 },
                  Point {
                     x: center.x + distance,
@@ -132,14 +199,15 @@ impl Triangle {
                 },
                  Point {
                     x: center.x,
-                    y: center.y - distance,
+                    y: cmp::min(y, center.y - distance),
                 },
                  Point {
-                    x: center.x - distance,
+                    x: cmp::min(x, center.x - distance),
                     y: center.y,
                 })
             }
         };
+
         Triangle {
             a: a,
             b: b,
@@ -150,6 +218,9 @@ impl Triangle {
 }
 
 impl Hitable for Triangle {
+    fn debug(&self) {
+        println!("{:?}", self);
+    }
     fn color(&self) -> &Rgba<u8> {
         &self.color
     }
@@ -165,5 +236,40 @@ impl Hitable for Triangle {
         let c = 1.0 - a - b;
 
         0.0 <= a && a <= 1.0 && 0.0 <= b && b <= 1.0 && 0.0 <= c && c <= 1.0
+    }
+
+    fn pixel_box(&self) -> (Point, Point) {
+        let min_x = cmp::min(self.a.x, cmp::min(self.b.x, self.c.x));
+        let min_y = cmp::min(self.a.y, cmp::min(self.b.y, self.c.y));
+        let max_x = cmp::max(self.a.x, cmp::max(self.b.x, self.c.x));
+        let max_y = cmp::max(self.a.y, cmp::max(self.b.y, self.c.y));
+        (Point {
+            x: min_x,
+            y: min_y,
+        },
+         Point {
+            x: max_x,
+            y: max_y,
+        })
+    }
+    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize {
+        let imgx = source.width();
+        let imgy = source.height();
+        let mut fitness = 0;
+        let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
+        for x in min_x..max_x {
+            for y in min_y..max_y {
+                if x > 0 && y > 0 && x < imgx && y < imgy {
+                    let point = Point { x: x, y: y };
+                    if self.hit(&point) {
+                        let px = x as u32;
+                        let py = y as u32;
+                        fitness += self.color_fitness(&self.color(), source.get_pixel(px, py));
+
+                    }
+                }
+            }
+        }
+        fitness
     }
 }

@@ -27,7 +27,7 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 6 == 0 {
+        if false {
             vec.push(Box::new(Triangle::random(x, y)));
         } else {
             vec.push(Box::new(Circle::random(x, y)));
@@ -101,24 +101,42 @@ fn main() {
     let mut rng = rand::thread_rng();
     let object_count = Range::new(2, 6);
     for i in 0..runs {
-        let circles = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
         let mut current_buf = list[0].1.clone();
-        for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
-            let point = Point {
-                x: x as i32,
-                y: y as i32,
-            };
-            if let Some(hit) = circles.iter().find(|circle| circle.hit(&point)) {
-                if old_style {
-                    *pixel = hit.color().clone();
-                } else {
-                    *pixel = sum_pixel_values(&hit.color(), &pixel);
+        let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
+
+        let good_objects: Vec<Box<Hitable>> = {
+            objects.into_iter()
+                .filter(|o| o.fitness(&current_buf) >= 0)
+                .collect()
+        };
+        for circle in good_objects {
+            let points: (Point, Point) = circle.pixel_box();
+            let Point { x: min_x, y: min_y } = points.0;
+            let Point { x: max_x, y: max_y } = points.1;
+            for x in min_x..max_x {
+                for y in min_y..max_y {
+                    if x > 0 && y > 0 && x < imgx && y < imgy {
+                        let point = Point { x: x, y: y };
+                        if circle.hit(&point) {
+                            if old_style {
+                                current_buf.put_pixel(x, y, circle.color().clone());
+                            } else {
+                                let pixel = current_buf.get_pixel(x, y).clone();
+                                current_buf.put_pixel(x, y, sum_pixel_values(&circle.color(), &pixel));
+                            }
+                        }
+                    }
                 }
             }
-
         }
 
-        if (final_file.is_none() || peek) && (i % peek_size == 0 || i == runs - 1) {
+        if (final_file.is_none() || peek) && ((i % peek_size) == 0 || i == runs - 1) {
+            println!("{:?} {:?} {:?} {:?} {:?}",
+                     final_file,
+                     peek,
+                     i,
+                     peek_size,
+                     runs);
             let name = format!("results/run_{}.png", i);
             let ref mut fout = Path::new(&name);
             let _ = current_buf.save(fout);
