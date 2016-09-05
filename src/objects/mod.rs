@@ -43,7 +43,7 @@ pub trait Hitable {
                 }
             }
         }
-        if source_fitness < current_fitness {
+        if source_fitness < 10_000 + current_fitness {
             1
         } else {
             0

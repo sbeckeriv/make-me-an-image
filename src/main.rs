@@ -30,7 +30,7 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Arc<Hitable>> {
     let mut vec: Vec<Arc<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 5 == 0 {
+        if i % 2 == 0 {
             vec.push(Arc::new(Triangle::random(x, y)));
         } else {
             vec.push(Arc::new(Circle::random(x, y)));
@@ -74,17 +74,19 @@ fn main() {
     let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
     let imgx = reference.width();
     let imgy = reference.height();
-    let mut list = vec![(std::isize::MAX, image::ImageBuffer::new(imgx, imgy))];
+    let mut list = vec![image::ImageBuffer::new(imgx, imgy)];
+
     let runs = if args.get_str("--n") != "" {
         args.get_str("--n").parse::<i32>().unwrap()
     } else {
         100_000
     };
+
     let peek_size = runs / 30;
     let mut rng = rand::thread_rng();
     let object_count = Range::new(10, 20);
     for i in 0..runs {
-        let mut current_buf = list[0].1.clone();
+        let mut current_buf = list[0].clone();
         let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
 
         let good_objects: Vec<Arc<Hitable>> = objects.into_iter()
@@ -117,8 +119,7 @@ fn main() {
             let _ = current_buf.save(fout);
         }
 
-
-        list = vec![(0, current_buf)];
+        list = vec![current_buf];
 
         if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
@@ -128,6 +129,6 @@ fn main() {
     if let Some(file) = final_file {
         let name = format!("{}.png", file);
         let ref mut fout = File::create(&Path::new(&name)).unwrap();
-        let _ = image::ImageRgba8(list[0].1.clone()).save(fout, image::PNG);
+        let _ = image::ImageRgba8(list[0].clone()).save(fout, image::PNG);
     }
 }
