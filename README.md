@@ -30,11 +30,6 @@ Per object fitness test 10 million 4m11.150s
 ![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/bird_10_mill.png "10 mill")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
 
 
-1 million run of triangles with combining pixels 58 minutes
-
-
-![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/1_mill_tri.png "1 mill ")![alt text](https://raw.githubusercontent.com/sbeckeriv/make-me-an-image/master/base.png "base")
-
 1 million run of triangles old style
 
 
