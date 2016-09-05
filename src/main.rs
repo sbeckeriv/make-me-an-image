@@ -27,33 +27,13 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 10 == 0 {
+        if i % 5 == 0 {
             vec.push(Box::new(Triangle::random(x, y)));
         } else {
             vec.push(Box::new(Circle::random(x, y)));
         }
     }
     vec
-}
-
-// https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
-fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
-           generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
-           -> isize {
-    let mut fitness = 0;
-    for (x, y, spixel) in source.enumerate_pixels() {
-        let gpixel = generated.get_pixel(x, y);
-        let s = spixel.data[0] as isize;
-        let g = gpixel.data[0] as isize;
-        fitness += (s - g) * (s - g);
-        let s = spixel.data[1] as isize;
-        let g = gpixel.data[1] as isize;
-        fitness += (s - g) * (s - g);
-        let s = spixel.data[2] as isize;
-        let g = gpixel.data[2] as isize;
-        fitness += (s - g) * (s - g);
-    }
-    fitness
 }
 
 fn combine_channel(top: u8, bottom: u8, transparency: u8) -> u8 {
@@ -99,7 +79,7 @@ fn main() {
     };
     let peek_size = runs / 30;
     let mut rng = rand::thread_rng();
-    let object_count = Range::new(2, 6);
+    let object_count = Range::new(10, 20);
     for i in 0..runs {
         let mut current_buf = list[0].1.clone();
         let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
