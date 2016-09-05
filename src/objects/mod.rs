@@ -22,7 +22,33 @@ pub trait Hitable {
     fn debug(&self) -> ();
     fn hit(&self, pixel: &Point) -> bool;
     fn color(&self) -> &Rgba<u8>;
-    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize;
+    fn fitness(&self,
+               source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
+               current: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
+               -> isize {
+        let imgx = source.width();
+        let imgy = source.height();
+        let mut source_fitness = 0;
+        let mut current_fitness = 0;
+        let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
+        for x in min_x..max_x {
+            for y in min_y..max_y {
+                if x > 0 && y > 0 && x < imgx && y < imgy {
+                    let point = Point { x: x, y: y };
+                    if self.hit(&point) {
+                        source_fitness += self.color_fitness(&self.color(), source.get_pixel(x, y));
+                        current_fitness +=
+                            self.color_fitness(current.get_pixel(x, y), source.get_pixel(x, y));
+                    }
+                }
+            }
+        }
+        if source_fitness < current_fitness {
+            1
+        } else {
+            0
+        }
+    }
     fn pixel_box(&self) -> (Point, Point);
     fn color_fitness(&self, generated_color: &Rgba<u8>, source_color: &Rgba<u8>) -> isize {
         let mut fitness = 0;
@@ -104,24 +130,6 @@ impl Hitable for Circle {
             x: max_x,
             y: max_y,
         })
-    }
-
-    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize {
-        let imgx = source.width();
-        let imgy = source.height();
-        let mut fitness = 0;
-        let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
-        for x in min_x..max_x {
-            for y in min_y..max_y {
-                if x > 0 && y > 0 && x < imgx && y < imgy {
-                    let point = Point { x: x, y: y };
-                    if self.hit(&point) {
-                        fitness += self.color_fitness(&self.color(), source.get_pixel(x, y));
-                    }
-                }
-            }
-        }
-        fitness
     }
 }
 
@@ -253,25 +261,5 @@ impl Hitable for Triangle {
             x: max_x,
             y: max_y,
         })
-    }
-    fn fitness(&self, source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>) -> isize {
-        let imgx = source.width();
-        let imgy = source.height();
-        let mut fitness = 0;
-        let (Point { x: min_x, y: min_y }, Point { x: max_x, y: max_y }) = self.pixel_box();
-        for x in min_x..max_x {
-            for y in min_y..max_y {
-                if x > 0 && y > 0 && x < imgx && y < imgy {
-                    let point = Point { x: x, y: y };
-                    if self.hit(&point) {
-                        let px = x as u32;
-                        let py = y as u32;
-                        fitness += self.color_fitness(&self.color(), source.get_pixel(px, py));
-
-                    }
-                }
-            }
-        }
-        fitness
     }
 }

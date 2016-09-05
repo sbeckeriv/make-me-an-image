@@ -99,16 +99,14 @@ fn main() {
     };
     let peek_size = runs / 30;
     let mut rng = rand::thread_rng();
-    let object_count = Range::new(10, 60);
+    let object_count = Range::new(2, 6);
     for i in 0..runs {
         let mut current_buf = list[0].1.clone();
         let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
 
-        let good_objects: Vec<Box<Hitable>> = {
-            objects.into_iter()
-                .filter(|o| o.fitness(&current_buf) >= 0)
-                .collect()
-        };
+        let good_objects: Vec<Box<Hitable>> = objects.into_iter()
+            .filter(|o| o.fitness(&reference, &current_buf) > 0)
+            .collect();
         for circle in good_objects {
             let points: (Point, Point) = circle.pixel_box();
             let Point { x: min_x, y: min_y } = points.0;
@@ -131,22 +129,13 @@ fn main() {
         }
 
         if (final_file.is_none() || peek) && ((i % peek_size) == 0 || i == runs - 1) {
-            println!("{:?} {:?} {:?} {:?} {:?}",
-                     final_file,
-                     peek,
-                     i,
-                     peek_size,
-                     runs);
             let name = format!("results/run_{}.png", i);
             let ref mut fout = Path::new(&name);
             let _ = current_buf.save(fout);
         }
 
-        let value = fitness(&reference, &current_buf);
 
-        if value < list[0].0 {
-            list = vec![(value, current_buf)];
-        }
+        list = vec![(0, current_buf)];
 
         if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
