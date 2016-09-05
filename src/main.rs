@@ -27,33 +27,13 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 6 == 0 {
+        if i % 5 == 0 {
             vec.push(Box::new(Triangle::random(x, y)));
         } else {
             vec.push(Box::new(Circle::random(x, y)));
         }
     }
     vec
-}
-
-// https://rogeralsing.com/2008/12/09/genetic-programming-mona-lisa-faq/
-fn fitness(source: &image::ImageBuffer<Rgba<u8>, Vec<u8>>,
-           generated: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
-           -> isize {
-    let mut fitness = 0;
-    for (x, y, spixel) in source.enumerate_pixels() {
-        let gpixel = generated.get_pixel(x, y);
-        let s = spixel.data[0] as isize;
-        let g = gpixel.data[0] as isize;
-        fitness += (s - g) * (s - g);
-        let s = spixel.data[1] as isize;
-        let g = gpixel.data[1] as isize;
-        fitness += (s - g) * (s - g);
-        let s = spixel.data[2] as isize;
-        let g = gpixel.data[2] as isize;
-        fitness += (s - g) * (s - g);
-    }
-    fitness
 }
 
 fn combine_channel(top: u8, bottom: u8, transparency: u8) -> u8 {
@@ -81,7 +61,7 @@ fn main() {
             e.exit()
         });
     let old_style = !args.get_bool("--blend");
-    let peek = !args.get_bool("--peek");
+    let peek = args.get_bool("--peek");
     let file = format!("{}", args.get_str("--base"));
     let final_file = if args.get_str("--out") == "" {
         None
@@ -99,36 +79,43 @@ fn main() {
     };
     let peek_size = runs / 30;
     let mut rng = rand::thread_rng();
-    let object_count = Range::new(2, 6);
+    let object_count = Range::new(10, 20);
     for i in 0..runs {
-        let circles = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
         let mut current_buf = list[0].1.clone();
-        for (x, y, pixel) in current_buf.enumerate_pixels_mut() {
-            let point = Point {
-                x: x as i32,
-                y: y as i32,
-            };
-            if let Some(hit) = circles.iter().find(|circle| circle.hit(&point)) {
-                if old_style {
-                    *pixel = hit.color().clone();
-                } else {
-                    *pixel = sum_pixel_values(&hit.color(), &pixel);
+        let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
+
+        let good_objects: Vec<Box<Hitable>> = objects.into_iter()
+            .filter(|o| o.fitness(&reference, &current_buf) > 0)
+            .collect();
+        for circle in good_objects {
+            let points: (Point, Point) = circle.pixel_box();
+            let Point { x: min_x, y: min_y } = points.0;
+            let Point { x: max_x, y: max_y } = points.1;
+            for x in min_x..max_x {
+                for y in min_y..max_y {
+                    if x > 0 && y > 0 && x < imgx && y < imgy {
+                        let point = Point { x: x, y: y };
+                        if circle.hit(&point) {
+                            if old_style {
+                                current_buf.put_pixel(x, y, circle.color().clone());
+                            } else {
+                                let pixel = current_buf.get_pixel(x, y).clone();
+                                current_buf.put_pixel(x, y, sum_pixel_values(&circle.color(), &pixel));
+                            }
+                        }
+                    }
                 }
             }
-
         }
 
-        if (final_file.is_none() || peek) && (i % peek_size == 0 || i == runs - 1) {
+        if (final_file.is_none() || peek) && ((i % peek_size) == 0 || i == runs - 1) {
             let name = format!("results/run_{}.png", i);
             let ref mut fout = Path::new(&name);
             let _ = current_buf.save(fout);
         }
 
-        let value = fitness(&reference, &current_buf);
 
-        if value < list[0].0 {
-            list = vec![(value, current_buf)];
-        }
+        list = vec![(0, current_buf)];
 
         if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
