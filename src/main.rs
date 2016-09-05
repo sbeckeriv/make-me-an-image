@@ -30,7 +30,7 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Arc<Hitable>> {
     let mut vec: Vec<Arc<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if i % 2 == 0 {
+        if i % 10 == 0 {
             vec.push(Arc::new(Triangle::random(x, y)));
         } else {
             vec.push(Arc::new(Circle::random(x, y)));
@@ -56,22 +56,16 @@ fn sum_pixel_values(top: &Rgba<u8>, bottom: &Rgba<u8>) -> Rgba<u8> {
     }
 }
 
-fn main() {
-    let args = Docopt::new(USAGE)
-        .and_then(|dopt| dopt.parse())
-        .unwrap_or_else(|e| {
-            println!("{:?}", e);
-            e.exit()
-        });
-    let old_style = !args.get_bool("--blend");
-    let peek = args.get_bool("--peek");
-    let file = format!("{}", args.get_str("--base"));
+fn make_me_an_image(args: &docopt::ArgvMap,
+                    reference: &image::ImageBuffer<Rgba<u8>, Vec<u8>>)
+                    -> image::ImageBuffer<Rgba<u8>, Vec<u8>> {
     let final_file = if args.get_str("--out") == "" {
         None
     } else {
         Some(args.get_str("--out"))
     };
-    let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
+    let old_style = !args.get_bool("--blend");
+    let peek = args.get_bool("--peek");
     let imgx = reference.width();
     let imgy = reference.height();
     let mut list = vec![image::ImageBuffer::new(imgx, imgy)];
@@ -124,11 +118,29 @@ fn main() {
         if i % 10_000 == 0 {
             println!("Iteration #{:?}", i);
         }
-
     }
+    list[0].clone()
+}
+fn main() {
+    let args = Docopt::new(USAGE)
+        .and_then(|dopt| dopt.parse())
+        .unwrap_or_else(|e| {
+            println!("{:?}", e);
+            e.exit()
+        });
+    let file = format!("{}", args.get_str("--base"));
+    let reference = image::open(&Path::new(&file)).unwrap().to_rgba();
+    let new_image = make_me_an_image(&args, &reference);
+
+    let final_file = if args.get_str("--out") == "" {
+        None
+    } else {
+        Some(args.get_str("--out"))
+    };
+
     if let Some(file) = final_file {
         let name = format!("{}.png", file);
         let ref mut fout = File::create(&Path::new(&name)).unwrap();
-        let _ = image::ImageRgba8(list[0].clone()).save(fout, image::PNG);
+        let _ = image::ImageRgba8(new_image).save(fout, image::PNG);
     }
 }
