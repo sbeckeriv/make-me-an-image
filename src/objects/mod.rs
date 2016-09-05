@@ -146,6 +146,9 @@ impl Triangle {
         };
         let distance = range.ind_sample(&mut rng) as u32;
         let the_direction = direction.ind_sample(&mut rng);
+        fn larger_zero(dia: u32, guess: u32) -> u32 {
+            if guess > dia { 0 } else { guess }
+        }
         let (a, b, c) = match the_direction {
             0 => {
                 (Point {
@@ -153,7 +156,7 @@ impl Triangle {
                     y: center.y,
                 },
                  Point {
-                    x: cmp::min(x, center.x - distance),
+                    x: larger_zero(x, center.x - distance),
                     y: center.y,
                 },
                  Point {
@@ -168,12 +171,12 @@ impl Triangle {
                     y: center.y,
                 },
                  Point {
-                    x: cmp::min(x, center.x - distance),
+                    x: larger_zero(x, center.x - distance),
                     y: center.y,
                 },
                  Point {
                     x: center.x,
-                    y: cmp::min(y, center.y - distance),
+                    y: larger_zero(y, center.y - distance),
                 })
             }
 
@@ -184,7 +187,7 @@ impl Triangle {
                 },
                  Point {
                     x: center.x,
-                    y: cmp::min(y, center.y - distance),
+                    y: larger_zero(y, center.y - distance),
                 },
                  Point {
                     x: center.x + distance,
@@ -198,10 +201,10 @@ impl Triangle {
                 },
                  Point {
                     x: center.x,
-                    y: cmp::min(y, center.y - distance),
+                    y: larger_zero(y, center.y - distance),
                 },
                  Point {
-                    x: cmp::min(x, center.x - distance),
+                    x: larger_zero(x, center.x - distance),
                     y: center.y,
                 })
             }

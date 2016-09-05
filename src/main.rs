@@ -27,7 +27,7 @@ Options:
 fn random_objects(x: u32, y: u32, count: u32) -> Vec<Box<Hitable>> {
     let mut vec: Vec<Box<Hitable>> = Vec::with_capacity(count as usize);
     for i in 0..count {
-        if false {
+        if i % 10 == 0 {
             vec.push(Box::new(Triangle::random(x, y)));
         } else {
             vec.push(Box::new(Circle::random(x, y)));
@@ -99,7 +99,7 @@ fn main() {
     };
     let peek_size = runs / 30;
     let mut rng = rand::thread_rng();
-    let object_count = Range::new(2, 6);
+    let object_count = Range::new(10, 60);
     for i in 0..runs {
         let mut current_buf = list[0].1.clone();
         let objects = random_objects(imgx, imgy, object_count.ind_sample(&mut rng));
