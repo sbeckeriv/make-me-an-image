@@ -3,6 +3,10 @@ use image::Rgba;
 use rand;
 use std::cmp;
 use rand::distributions::{IndependentSample, Range};
+
+fn larger_zero(dia: u32, guess: u32) -> u32 {
+    if guess > dia { 0 } else { guess }
+}
 pub fn random_color() -> Rgba<u8> {
     let mut rng = rand::thread_rng();
     let color_between = Range::new(0, 255);
@@ -66,6 +70,68 @@ pub trait Hitable {
 }
 
 #[derive(Debug)]
+pub struct Rectangle {
+    pub top_left: Point,
+    pub bottom_right: Point,
+    pub color: Rgba<u8>,
+}
+
+impl Rectangle {
+    pub fn random(x: u32, y: u32) -> Self {
+        let mut rng = rand::thread_rng();
+        let width_range = Range::new(2, 10);
+        let height_range = Range::new(2, 10);
+        let x_between = Range::new(0, x);
+        let y_between = Range::new(0, y);
+        let width = width_range.ind_sample(&mut rng);
+        let height = height_range.ind_sample(&mut rng);
+
+        let center = Point {
+            x: x_between.ind_sample(&mut rng),
+            y: y_between.ind_sample(&mut rng),
+        };
+
+        Rectangle {
+            top_left: Point {
+                x: larger_zero(x, center.x - width),
+                y: center.y + height,
+            },
+            bottom_right: Point {
+                x: center.x + width,
+                y: larger_zero(y, center.y - height),
+            },
+            color: random_color(),
+        }
+    }
+}
+
+impl Hitable for Rectangle {
+    fn debug(&self) {
+        println!("{:?}", self);
+    }
+    fn hit(&self, pixel: &Point) -> bool {
+        let Point { x, y } = *pixel;
+        x >= self.top_left.x && x <= self.bottom_right.x && y >= self.top_left.y &&
+        y <= self.bottom_right.y
+    }
+
+    fn color(&self) -> &Rgba<u8> {
+        &self.color
+    }
+
+    fn pixel_box(&self) -> (Point, Point) {
+        (Point {
+            x: self.bottom_right.x,
+            y: self.bottom_right.y,
+        },
+         Point {
+            x: self.top_left.x,
+            y: self.top_left.y,
+        })
+    }
+}
+
+#[derive(Debug)]
 pub struct Circle {
     pub center: Point,
     pub radius: f32,
@@ -75,7 +141,7 @@ pub struct Circle {
 impl Circle {
     pub fn random(x: u32, y: u32) -> Self {
         let mut rng = rand::thread_rng();
-        let radius_between = Range::new(2.0, 4.0);
+        let radius_between = Range::new(1.0, 5.2);
         let x_between = Range::new(0, x);
         let y_between = Range::new(0, y);
 
@@ -143,7 +209,7 @@ pub struct Triangle {
 impl Triangle {
     pub fn random(x: u32, y: u32) -> Self {
         let mut rng = rand::thread_rng();
-        let range = Range::new(3, 10);
+        let range = Range::new(3, 13);
         let direction = Range::new(0, 4);
 
         let x_between = Range::new(0, x);
@@ -154,9 +220,6 @@ impl Triangle {
         };
         let distance = range.ind_sample(&mut rng) as u32;
         let the_direction = direction.ind_sample(&mut rng);
-        fn larger_zero(dia: u32, guess: u32) -> u32 {
-            if guess > dia { 0 } else { guess }
-        }
         let (a, b, c) = match the_direction {
             0 => {
                 (Point {

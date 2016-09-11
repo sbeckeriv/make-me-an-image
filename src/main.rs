@@ -6,7 +6,7 @@ mod objects;
 
 use std::sync::Arc;
 use docopt::Docopt;
-use objects::{Hitable, Point, Circle, Triangle};
+use objects::{Hitable, Point, Circle, Triangle, Rectangle};
 use image::Rgba;
 use std::fs::File;
 use std::path::Path;
@@ -32,8 +32,10 @@ fn random_objects(x: u32, y: u32, count: u32) -> Vec<Arc<Hitable>> {
     for i in 0..count {
         if i % 10 == 0 {
             vec.push(Arc::new(Triangle::random(x, y)));
-        } else {
+        } else if i % 5 == 0 {
             vec.push(Arc::new(Circle::random(x, y)));
+        } else {
+            vec.push(Arc::new(Rectangle::random(x, y)));
         }
     }
     vec
